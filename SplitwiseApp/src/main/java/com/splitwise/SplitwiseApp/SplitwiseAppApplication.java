@@ -29,8 +29,7 @@ public class SplitwiseAppApplication implements CommandLineRunner {
 		UserRepo userRepo = new UserRepo();
 		UserService userService = new UserServiceImpl(userRepo);
 		ExpenseRepo expenseRepo = new ExpenseRepo();
-		SplitFactory factory = new SplitFactory();
-		ExpenseServiceImpl expenseService = new ExpenseServiceImpl(userRepo, expenseRepo, factory);
+		ExpenseServiceImpl expenseService = new ExpenseServiceImpl(userRepo, expenseRepo);
 
 		ExpenseController expenseController = new ExpenseController(expenseService);
 		UserController userController = new UserController(userService);

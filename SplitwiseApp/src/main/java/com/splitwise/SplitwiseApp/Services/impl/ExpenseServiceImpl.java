@@ -14,18 +14,15 @@ import java.util.*;
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
 
-    private UserRepo userRepo;
+    private final UserRepo userRepo;
 
 
-    private ExpenseRepo expenseRepo;
+    private final ExpenseRepo expenseRepo;
 
 
-    private SplitFactory splitFactory;
-
-    public ExpenseServiceImpl(UserRepo userRepo, ExpenseRepo expenseRepo, SplitFactory factory) {
+    public ExpenseServiceImpl(UserRepo userRepo, ExpenseRepo expenseRepo) {
         this.userRepo = userRepo;
         this.expenseRepo = expenseRepo;
-        this.splitFactory = factory;
     }
 
     @Override
