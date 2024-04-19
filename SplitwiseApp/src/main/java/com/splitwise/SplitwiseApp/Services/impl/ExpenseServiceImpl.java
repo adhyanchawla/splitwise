@@ -6,7 +6,10 @@ import com.splitwise.SplitwiseApp.Services.ExpenseService;
 import com.splitwise.SplitwiseApp.SplitFactory.SplitFactory;
 import com.splitwise.SplitwiseApp.models.Expense;
 import com.splitwise.SplitwiseApp.models.OwedBy;
+import com.splitwise.SplitwiseApp.models.Transaction;
+import com.splitwise.SplitwiseApp.models.User;
 import com.splitwise.SplitwiseApp.payload.CreateExpenseRequest;
+import com.splitwise.SplitwiseApp.strategies.settleUp.SettleUpStrategy;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -19,10 +22,11 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepo expenseRepo;
 
-
-    public ExpenseServiceImpl(UserRepo userRepo, ExpenseRepo expenseRepo) {
+    private final SettleUpStrategy settleUpStrategy;
+    public ExpenseServiceImpl(UserRepo userRepo, ExpenseRepo expenseRepo, SettleUpStrategy settleUpStrategy) {
         this.userRepo = userRepo;
         this.expenseRepo = expenseRepo;
+        this.settleUpStrategy = settleUpStrategy;
     }
 
     @Override
@@ -90,5 +94,35 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
         }
         return expenseDetails;
+    }
+
+    @Override
+    public List<Transaction> settleUpUser(String userId) {
+        List<Expense> userExpenses = new ArrayList<>();
+        for(Expense expense: this.expenseRepo.getExpenseMap().values()) {
+            User paidBy = expense.getPaidBy();
+            List<OwedBy> owedByList = expense.getOwedBy();
+            if(paidBy.getUserId().equals(userId)) {
+                userExpenses.add(expense);
+            } else {
+                for(OwedBy owed: owedByList) {
+                    if(owed.getUserId().equals(userId)) {
+                        userExpenses.add(expense);
+                        break;
+                    }
+                }
+            }
+        }
+        List<Transaction> transactions = settleUpStrategy.settleUp(userExpenses);
+
+        List<Transaction> filteredTransactions = new ArrayList<>();
+
+        for(Transaction t: transactions) {
+            if(t.getFrom().getUserId().equals(userId) || t.getTo().getUserId().equals(userId)) {
+                filteredTransactions.add(t);
+            }
+        }
+
+        return filteredTransactions;
     }
 }
